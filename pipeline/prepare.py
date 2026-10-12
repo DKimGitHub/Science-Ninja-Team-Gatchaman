@@ -1,5 +1,6 @@
 """Stage 1: episode file -> clean 16 kHz mono WAV -> speech chunks."""
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -14,7 +15,7 @@ def to_wav(src: Path, dst: Path) -> Path:
 def separate_vocals(wav: Path, outdir: Path) -> Path:
     """Strip music and effects with Demucs. Needs `pip install demucs`."""
     subprocess.run(
-        ["python", "-m", "demucs", "--two-stems=vocals", "-o", str(outdir), str(wav)],
+        [sys.executable, "-m", "demucs", "--two-stems=vocals", "-o", str(outdir), str(wav)],
         check=True)
     vocals = outdir / "htdemucs" / wav.stem / "vocals.wav"
     out = outdir / f"{wav.stem}_vocals16k.wav"
@@ -24,8 +25,11 @@ def separate_vocals(wav: Path, outdir: Path) -> Path:
 
 def chunk_speech(wav: Path, pad: float = 0.25, max_len: float = 28.0):
     """Voice-activity detection. Returns [(start, end)] in seconds."""
-    from silero_vad import get_speech_timestamps, load_silero_vad, read_audio
-    audio = read_audio(str(wav), sampling_rate=16000)
+    import soundfile as sf
+    import torch
+    from silero_vad import get_speech_timestamps, load_silero_vad
+    data, _ = sf.read(str(wav), dtype="float32")
+    audio = torch.from_numpy(data)
     stamps = get_speech_timestamps(
         audio, load_silero_vad(), sampling_rate=16000,
         min_silence_duration_ms=400, return_seconds=True)
