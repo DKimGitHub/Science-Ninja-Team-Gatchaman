@@ -29,8 +29,11 @@ class WhisperEngine:
         self.prompt = "Names: " + ", ".join(glossary) + "."
 
     def transcribe(self, wav):
+        import soundfile as sf
+        # Pipeline audio is already 16 kHz mono WAV; passing samples avoids the PyAV decoder.
+        audio, _ = sf.read(str(wav), dtype="float32")
         segs, _ = self.m.transcribe(
-            str(wav), language="en", word_timestamps=True, beam_size=5,
+            audio, language="en", word_timestamps=True, beam_size=5,
             initial_prompt=self.prompt, condition_on_previous_text=False,
             vad_filter=False, no_speech_threshold=0.5)
         return [Word(w.word.strip(), w.start, w.end, w.probability)
