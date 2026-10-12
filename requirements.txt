@@ -1,0 +1,5 @@
+faster-whisper
+nemo_toolkit[asr]
+silero-vad
+demucs
+pytest
