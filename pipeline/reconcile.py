@@ -31,6 +31,8 @@ def _sim(a, b):
 def vote(texts: dict, glossary=()):
     """texts: {engine: [word, ...]} for ONE chunk.
     Returns (words, flags) where flags is a list of (index, reason, {engine: word})."""
+    # Punctuation-only tokens (Canary emits "," and "?" on their own) are not words.
+    texts = {n: [w for w in ws if norm(w)] for n, ws in texts.items()}
     names = list(texts)
     if len(names) < 3:
         raise ValueError("need all three engines")

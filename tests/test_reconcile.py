@@ -33,3 +33,11 @@ def test_hallucinated_insert_flagged():
     words, flags = vote(t, G)
     assert any("only whisper" in f[1] or "dropped" in f[1] for f in flags)
     assert " ".join(words).startswith("hold on")
+
+
+def test_punctuation_tokens_are_not_flagged():
+    t = {"whisper": ["hold", "it,", "Jason"],
+         "parakeet": ["hold", "it", "Jason"],
+         "canary": ["hold", "it", ",", "Jason", "?"]}
+    words, flags = vote(t, G)
+    assert flags == [] and len(words) == 3
